@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AlgoSenseBot</title>
+  <style>
+    /* Reset styles */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Body Styling */
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #1d3557, #457b9d);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: white;
+    }
+
+    /* Chatbot container styling */
+    .chatbot-container {
+      width: 400px;
+      height: 600px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      padding: 15px;
+      box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Header styling */
+    .chatbot-header {
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-align: center;
+      padding: 10px;
+      margin-bottom: 10px;
+      color: #a8dadc;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* Chatbox area */
+    .chatbox {
+      flex-grow: 1;
+      overflow-y: auto;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.1);
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: #457b9d transparent;
+    }
+
+    /* Styling for individual messages */
+    .chat-message {
+      padding: 10px 15px;
+      border-radius: 15px;
+      max-width: 70%;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      display: inline-block;
+      word-wrap: break-word;
+    }
+
+    /* User messages */
+    .user-message {
+      background-color: #457b9d;
+      color: white;
+      align-self: flex-end;
+    }
+
+    /* Bot messages */
+    .bot-message {
+      background-color: #f1faee;
+      color: black;
+      align-self: flex-start;
+    }
+
+    /* Input container styling */
+    .chat-input-container {
+      display: flex;
+      gap: 10px;
+      padding-top: 10px;
+    }
+
+    /* Input field */
+    .chat-input {
+      flex-grow: 1;
+      padding: 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      font-size: 0.9rem;
+    }
+
+    .chat-input:focus {
+      outline: none;
+      border-color: #457b9d;
+    }
+
+    /* Buttons styling */
+    .chat-send,
+    .chat-reset {
+      padding: 10px 15px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      color: white;
+      font-weight: bold;
+    }
+
+    .chat-send {
+      background-color: #1d3557;
+    }
+
+    .chat-send:hover {
+      background-color: #457b9d;
+    }
+
+    .chat-reset {
+      background-color: #e63946;
+    }
+
+    .chat-reset:hover {
+      background-color: #d90429;
+    }
+
+    /* Scrollbar styling */
+    .chatbox::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .chatbox::-webkit-scrollbar-thumb {
+      background: #457b9d;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="chatbot-container">
+    <div class="chatbot-header">
+      AlgoSenseBot 
+    </div>
+    <div class="chatbox" id="chatbox"></div>
+    <div class="chat-input-container">
+      <input
+        type="text"
+        id="user-input"
+        placeholder="Ketik pesan di sini..."
+        class="chat-input"
+      />
+      <button onclick="sendMessage()" class="chat-send">Kirim</button>
+      <button id="reset-button" class="chat-reset">Reset</button>
+    </div>
+  </div>
+
+  <script>
+    let userState = { firstInteraction: true, greeted: false };
+
+    // Function to send a message
+    function sendMessage() {
+        const userInputElement = document.getElementById("user-input");
+        const userInput = userInputElement.value.trim();
+
+        if (userInput !== "") {
+            displayMessage(userInput, "user");
+            userInputElement.value = ""; // Clear input field
+            processMessage(userInput);
+        }
+    }
+
+    // Process the message on the client-side
+    function processMessage(userInput) {
+    // Normalize the input (lowercase and trim)
+    const normalizedInput = userInput.toLowerCase().trim();
+
+    // Check if this is the first interaction
+    if (userState.firstInteraction) {
+        userState.firstInteraction = false;
+        displayMessage("Hai! Ada yang bisa saya bantu? Apakah kamu memerlukan rekomendasi algoritma untuk pengolahan data?", "bot");
+        return;
+    }
+
+    // Check for an affirmative response in the second interaction
+    if (!userState.greeted) {
+        const affirmativeResponses = [
+            "ya", "yes", "yup", "iya", "betul", "oke", "ok", "okay", "baik", 
+            "tentu", "pastinya", "y", "yes please", "ya tentu", "silakan", 
+            "boleh", "setuju", "sure", "benar", "ya benar", "sip", "mantap", 
+            "yess", "yo", "yoi", "yesss", "yeah", "ya dong", "okey", 
+            "yes dong", "ok bro", "yes kok"
+        ];
+
+        // Match whole words only using regex
+        const isAffirmative = affirmativeResponses.some(word => {
+            const regex = new RegExp(`\\b${word}\\b`, 'i');
+            return regex.test(normalizedInput);
+        });
+
+        if (isAffirmative) {
+            userState.greeted = true;
+            displayMessage("Bagus! Data seperti apa yang ingin Anda analisis, dan tujuan pengolahannya apa?", "bot");
+            return;
+        }
+    }
+
+    // Send data to the server for further processing
+    sendToServer(userInput);
+}
+
+
+    // Function to send the message to the server
+    function sendToServer(userInput) {
+        fetch("/chat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ message: userInput }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                displayMessage(data.jawaban || "Terjadi kesalahan.", "bot");
+            })
+            .catch(() => {
+                displayMessage("Tidak dapat terhubung ke server.", "bot");
+            });
+    }
+
+    // Function to display a message
+    function displayMessage(message, sender) {
+        const chatbox = document.getElementById("chatbox");
+        const messageElement = document.createElement("div");
+        messageElement.classList.add(
+            "chat-message",
+            sender === "user" ? "user-message" : "bot-message"
+        );
+        messageElement.textContent = message;
+        chatbox.appendChild(messageElement);
+        chatbox.scrollTop = chatbox.scrollHeight; // Scroll to the bottom
+    }
+
+    // Reset chatbox and user state
+    document.getElementById("reset-button").addEventListener("click", () => {
+        document.getElementById("chatbox").innerHTML = ""; // Clear chat messages
+        userState = { firstInteraction: true, greeted: false }; // Reset user state
+    });
+
+    // Send message on pressing Enter
+    document.getElementById("user-input").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            sendMessage();
+        }
+    });
+</script>
+
+
+
+</body>
+</html>
